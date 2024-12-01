@@ -4,13 +4,12 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
-
 public class CheckoutView extends JPanel {
     private ColorScheme colorScheme;
     private JLabel totalPriceLabel;
     private JPanel cartSummaryPanel;
     private static final Color CARD_COLOR = new Color(240, 240, 240); // Light gray
-    private static final Color TEXT_COLOR = new Color(0, 0, 0); // Black
+    private static final Color TEXT_COLOR = new Color(0, 0, 0);       // Black
 
     public CheckoutView()
     {
@@ -56,7 +55,6 @@ public class CheckoutView extends JPanel {
         confirmButton.setBackground(new Color(0, 122, 255));
         confirmButton.setFocusPainted(false);
         confirmButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
 
         JButton backButton = new JButton("Back to Cart");
         backButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -84,9 +82,10 @@ public class CheckoutView extends JPanel {
         // Listen for changes to cart
         Cart.getInstance().addCartUpdateListener(() -> {
             refreshCartItems();
-            if (!Cart.getInstance().getItems().isEmpty()) {
-                // Ensure the action listener is only added once
-                for (ActionListener listener : confirmButton.getActionListeners()) {
+            if (!Cart.getInstance().getItems().isEmpty())
+            {
+                for (ActionListener listener : confirmButton.getActionListeners())
+                {
                     confirmButton.removeActionListener(listener);
                 }
                 confirmButton.addActionListener(e -> handleConfirmOrder());
@@ -133,21 +132,28 @@ public class CheckoutView extends JPanel {
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
         card.setMinimumSize(new Dimension(0, 120));
 
+        // Image Panel
         JPanel imagePanel = new JPanel();
         imagePanel.setBackground(CARD_COLOR);
 
         JLabel imageLabel = new JLabel();
-        System.out.println(product.getImage());
         if (product.getImage() != null)
         {
-            ImageIcon imageIcon = new ImageIcon(product.getImage());
-            imageLabel.setIcon(imageIcon);
+            ImageIcon imageIcon = new ImageIcon("images/" + product.getImage());
+            Image scaledImage = scaleImage(imageIcon.getImage(), 80, 80); // Scale image to 80x80
+            imageLabel.setIcon(new ImageIcon(scaledImage));
             imageLabel.setPreferredSize(new Dimension(80, 80));
+        }
+        else
+        {
+            imageLabel.setText("[No Image]");
+            imageLabel.setFont(new Font("Segoe UI", Font.ITALIC, 14));
         }
         imagePanel.add(imageLabel);
 
         card.add(imagePanel, BorderLayout.WEST);
 
+        // Info Panel
         JPanel infoPanel = new JPanel(new GridLayout(2, 1, 0, 5));
         infoPanel.setBackground(CARD_COLOR);
 
@@ -164,6 +170,7 @@ public class CheckoutView extends JPanel {
 
         card.add(infoPanel, BorderLayout.CENTER);
 
+        // Quantity Label
         JLabel quantityLabel = new JLabel("Qty: " + item.getQuantity());
         quantityLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         quantityLabel.setForeground(TEXT_COLOR);
@@ -181,18 +188,40 @@ public class CheckoutView extends JPanel {
 
     private void handleConfirmOrder()
     {
-
         JOptionPane.showMessageDialog(this, "Order Confirmed!", "Checkout",
                                       JOptionPane.INFORMATION_MESSAGE);
         Cart.getInstance().clear();
         refreshCartItems();
 
-        CartView cartView = (CartView) getParent().getComponent(
-            1);
+        CartView cartView = (CartView) getParent().getComponent(1);
         cartView.refreshView();
+        cartView.setTotalPriceLabel("Total: ₱0.00");
         totalPriceLabel.setText("Total: ₱0.00");
 
         CardLayout cl = (CardLayout) this.getParent().getLayout();
         cl.show(this.getParent(), "ProductView");
+    }
+
+    private Image scaleImage(Image originalImage, int maxWidth, int maxHeight)
+    {
+        int originalWidth = originalImage.getWidth(null);
+        int originalHeight = originalImage.getHeight(null);
+
+        if (originalWidth <= maxWidth && originalHeight <= maxHeight)
+        {
+            return originalImage;
+        }
+
+        double aspectRatio = (double) originalWidth / originalHeight;
+        int newWidth = maxWidth;
+        int newHeight = (int) (newWidth / aspectRatio);
+
+        if (newHeight > maxHeight)
+        {
+            newHeight = maxHeight;
+            newWidth = (int) (newHeight * aspectRatio);
+        }
+
+        return originalImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
     }
 }

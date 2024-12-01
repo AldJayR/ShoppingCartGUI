@@ -334,6 +334,12 @@ public class CartView extends JPanel {
         double total = cart.calculateTotal();
         totalPriceLabel.setText("Total: P" + total);
     }
+
+    public void setTotalPriceLabel(String totalText) 
+    {
+        totalPriceLabel.setText(totalText);
+    }
+
     private void showEmptyCartMessage()
     {
         productListPanel.removeAll();
