@@ -42,7 +42,7 @@ public class CheckoutView extends JPanel {
         JPanel totalPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         totalPanel.setBackground(colorScheme.getBackgroundColor());
 
-        totalPriceLabel = new JLabel("Total: Ph₱0.00");
+        totalPriceLabel = new JLabel("Total: ₱0.00");
         totalPriceLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         totalPriceLabel.setForeground(colorScheme.getTextColor());
         totalPanel.add(totalPriceLabel);

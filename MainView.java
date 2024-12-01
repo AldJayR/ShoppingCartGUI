@@ -9,12 +9,13 @@ public class MainView extends JFrame {
     private CartView cartView;
     private JLabel cartCountLabel;
     private static final Color HEADER_COLOR = new Color(255, 255, 255);
-    private static final Color FOOTER_COLOR = new Color(50, 50, 50); // Dark footer color
+    private static final Color FOOTER_COLOR = new Color(50, 50, 50);  // Dark footer color
     private static final Color ACCENT_COLOR = new Color(0, 122, 255); // Accent color (blue)
     private static final Font HEADER_FONT = new Font("Segoe UI", Font.BOLD, 24);
     private static final Font FOOTER_FONT = new Font("Segoe UI", Font.PLAIN, 12);
 
-    public MainView() {
+    public MainView()
+    {
         setTitle("Fowlers");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1920, 1080);
@@ -52,7 +53,8 @@ public class MainView extends JFrame {
         cardLayout.show(mainPanel, "ProductView");
     }
 
-    private JPanel createFooterPanel() {
+    private JPanel createFooterPanel()
+    {
         JPanel footerPanel = new JPanel();
         footerPanel.setLayout(new BorderLayout());
         footerPanel.setBackground(FOOTER_COLOR);
@@ -68,7 +70,8 @@ public class MainView extends JFrame {
         return footerPanel;
     }
 
-    private void initProducts(ArrayList<Product> products) {
+    private void initProducts(ArrayList<Product> products)
+    {
         products.add(new Product("Laptop", 45000.00, "Electronics", "laptop.png"));
         products.add(new Product("Smartphone", 15000.00, "Electronics", "smartphone.png"));
         products.add(new Product("Headphones", 3500.00, "Electronics", "headphones.png"));
@@ -93,7 +96,7 @@ public class MainView extends JFrame {
         products.add(new Product("Hammer", 250.00, "Hardware", "hammer.png"));
         products.add(new Product("Screwdriver Set", 500.00, "Hardware", "screwdriver.png"));
         products.add(new Product("Drill", 4000.00, "Hardware", "drill.png"));
-        products.add(new Product("Wrench Set", 800.00, "Hardware", "wrench.png"));
+        products.add(new Product("Wrench", 200.00, "Hardware", "wrench.png"));
         products.add(new Product("Tape Measure", 200.00, "Hardware", "measure.png"));
         products.add(new Product("Staple Gun", 300.00, "Hardware", "staplegun.png"));
 
@@ -105,23 +108,25 @@ public class MainView extends JFrame {
         products.add(new Product("Highlighter", 100.00, "School", "highlighter.png"));
     }
 
-    private JPanel createHeaderPanel() {
+    private JPanel createHeaderPanel()
+    {
         JPanel headerPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
+            @Override protected void paintComponent(Graphics g)
+            {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 // Create a gradient background (top to bottom)
-                GradientPaint gradient = new GradientPaint(0, 0, new Color(0, 122, 255), 0, getHeight(), new Color(0, 150, 255));
+                GradientPaint gradient = new GradientPaint(0, 0, new Color(0, 122, 255), 0,
+                                                           getHeight(), new Color(0, 150, 255));
                 g2d.setPaint(gradient);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        
+
         headerPanel.setLayout(new BorderLayout());
         headerPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
-                new EmptyBorder(10, 20, 10, 20)));
+            BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
+            new EmptyBorder(10, 20, 10, 20)));
 
         // Logo/Brand on the left
         JLabel brandLabel = new JLabel("Fowlers");
@@ -129,7 +134,8 @@ public class MainView extends JFrame {
         brandLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
         brandLabel.setForeground(HEADER_COLOR);
         brandLabel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
                 cardLayout.show(mainPanel, "ProductView");
             }
         });
@@ -144,14 +150,13 @@ public class MainView extends JFrame {
         cartButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // Add hover effect to cart button
-        cartButton.addMouseListener(new java.awt.event.MouseAdapter() 
-        {
-            public void mouseEntered(java.awt.event.MouseEvent evt) 
+        cartButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt)
             {
                 cartButton.setBackground(ACCENT_COLOR.darker());
             }
 
-            public void mouseExited(java.awt.event.MouseEvent evt) 
+            public void mouseExited(java.awt.event.MouseEvent evt)
             {
                 cartButton.setBackground(ACCENT_COLOR);
             }
@@ -167,34 +172,42 @@ public class MainView extends JFrame {
         return headerPanel;
     }
 
-    private void addToCart(Product product) {
+    private void addToCart(Product product)
+    {
         Cart cart = Cart.getInstance();
         CartItem existingItem = cart.getItems()
-            .stream()
-            .filter(item -> item.getProduct().equals(product))
-            .findFirst()
-            .orElse(null);
+                                    .stream()
+                                    .filter(item -> item.getProduct().equals(product))
+                                    .findFirst()
+                                    .orElse(null);
 
-        if (existingItem == null) {
+        if (existingItem == null)
+        {
             cart.addProduct(new CartItem(product, 1));
-        } else {
+        }
+        else
+        {
             existingItem.setQuantity(existingItem.getQuantity() + 1);
         }
 
         refreshCartView();
     }
 
-    private void refreshCartView() {
+    private void refreshCartView()
+    {
         cartView.refreshView();
         mainPanel.revalidate();
         mainPanel.repaint();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args)
+    {
         SwingUtilities.invokeLater(() -> {
-            try {
+            try
+            {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception e) {
+            } catch (Exception e)
+            {
                 e.printStackTrace();
             }
 

@@ -78,4 +78,10 @@ public class Cart {
             listener.run();
         }
     }
+
+    public void updateQuantity(CartItem item, int newQuantity) 
+    {
+        item.setQuantity(newQuantity);
+        notifyListeners();
+    }
 }

@@ -123,28 +123,38 @@ public class CartView extends JPanel {
         Product product = item.getProduct();
         JPanel card = new JPanel();
         card.setBackground(CARD_COLOR);
-        card.setLayout(new BorderLayout(10, 10));
+        card.setLayout(new BorderLayout(10, 10)); // Keep horizontal layout
 
         card.setBorder(new EmptyBorder(10, 10, 10, 10));
-
         card.setPreferredSize(new Dimension(0, 120));
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
         card.setMinimumSize(new Dimension(0, 120));
 
+        // Image panel for the product image
         JPanel imagePanel = new JPanel();
         imagePanel.setBackground(CARD_COLOR);
+        imagePanel.setLayout(
+            new BoxLayout(imagePanel, BoxLayout.Y_AXIS)); // Vertical alignment for image
 
         JLabel imageLabel = new JLabel();
         if (product.getImage() != null)
         {
-            ImageIcon imageIcon = new ImageIcon(product.getImage());
-            imageLabel.setIcon(imageIcon);
-            imageLabel.setPreferredSize(new Dimension(80, 80));
+            ImageIcon imageIcon = new ImageIcon("images/" + product.getImage());
+            Image scaledImage =
+                scaleImage(imageIcon.getImage(), 80, 80); // Scale image to a desired maximum size
+            imageLabel.setIcon(new ImageIcon(scaledImage));
+            imageLabel.setPreferredSize(new Dimension(80, 80)); // Fixed size for the image
+        }
+        else
+        {
+            imageLabel.setText("[No Image]");
+            imageLabel.setFont(new Font("Segoe UI", Font.ITALIC, 14));
         }
         imagePanel.add(imageLabel);
 
-        card.add(imagePanel, BorderLayout.WEST);
+        card.add(imagePanel, BorderLayout.WEST); // Add image panel to the left
 
+        // Info panel for name and price
         JPanel infoPanel = new JPanel(new GridLayout(2, 1, 0, 5));
         infoPanel.setBackground(CARD_COLOR);
 
@@ -159,8 +169,9 @@ public class CartView extends JPanel {
         infoPanel.add(nameLabel);
         infoPanel.add(priceLabel);
 
-        card.add(infoPanel, BorderLayout.CENTER);
+        card.add(infoPanel, BorderLayout.CENTER); // Add info panel to the center
 
+        // Quantity spinner
         JSpinner quantitySpinner =
             new JSpinner(new SpinnerNumberModel(item.getQuantity(), 1, 100, 1));
         quantitySpinner.setPreferredSize(new Dimension(60, 25));
@@ -169,8 +180,7 @@ public class CartView extends JPanel {
         JTextField textField = (JTextField) editor.getComponent(0);
         textField.setBackground(Color.WHITE);
         textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textField.setBorder(
-            BorderFactory.createLineBorder(Color.GRAY));
+        textField.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
         Component upButton = quantitySpinner.getComponent(0);
         Component downButton = quantitySpinner.getComponent(1);
@@ -206,12 +216,12 @@ public class CartView extends JPanel {
 
         quantitySpinner.addChangeListener(e -> {
             int newQuantity = (Integer) quantitySpinner.getValue();
-            item.setQuantity(newQuantity);
+            Cart.getInstance().updateQuantity(item, newQuantity); 
             updateTotalPrice(Cart.getInstance());
         });
+        card.add(quantitySpinner, BorderLayout.EAST); // Add spinner to the right
 
-        card.add(quantitySpinner, BorderLayout.EAST);
-
+        // Remove button
         JButton removeButton = new JButton("Remove");
         removeButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         removeButton.setForeground(ACCENT_COLOR);
@@ -227,9 +237,32 @@ public class CartView extends JPanel {
             refreshView();
         });
 
-        card.add(removeButton, BorderLayout.SOUTH);
+        card.add(removeButton, BorderLayout.SOUTH); // Add remove button to the bottom
 
         return card;
+    }
+
+    private Image scaleImage(Image originalImage, int maxWidth, int maxHeight)
+    {
+        int originalWidth = originalImage.getWidth(null);
+        int originalHeight = originalImage.getHeight(null);
+
+        if (originalWidth <= maxWidth && originalHeight <= maxHeight)
+        {
+            return originalImage;
+        }
+
+        double aspectRatio = (double) originalWidth / originalHeight;
+        int newWidth = maxWidth;
+        int newHeight = (int) (newWidth / aspectRatio);
+
+        if (newHeight > maxHeight)
+        {
+            newHeight = maxHeight;
+            newWidth = (int) (newHeight * aspectRatio);
+        }
+
+        return originalImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
     }
 
     public void refreshView()
