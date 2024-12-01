@@ -1,14 +1,15 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class Cart
-{
+public class Cart {
     private static Cart instance;
     private List<CartItem> items;
+    private List<Runnable> updateListeners;
 
     private Cart()
     {
         items = new ArrayList<>();
+        updateListeners = new ArrayList<>();
     }
 
     public static Cart getInstance()
@@ -28,37 +29,53 @@ public class Cart
 
     public void addProduct(CartItem item)
     {
-        // Check if the item already exists in the cart based on product ID
         for (CartItem cartItem : items)
         {
             if (cartItem.getProduct().getId() == item.getProduct().getId())
             {
-                cartItem.setQuantity(cartItem.getQuantity() + item.getQuantity());  // Increase quantity if the product already exists
+                cartItem.setQuantity(cartItem.getQuantity() + item.getQuantity());
+                notifyListeners();
                 return;
             }
         }
-        items.add(item);  // Otherwise, add the new item to the cart
+        items.add(item);
+        notifyListeners();
     }
 
     public void removeProduct(CartItem item)
     {
-        items.removeIf(cartItem -> cartItem.getProduct().getId() == item.getProduct().getId()); // Remove the item from the cart
+        items.removeIf(cartItem -> cartItem.getProduct().getId() == item.getProduct().getId());
+        notifyListeners();
     }
 
     public List<CartItem> getItems()
     {
-        return new ArrayList<>(items); // Return a copy of the list to avoid external modifications
+        return new ArrayList<>(items);
     }
 
     public void clear()
     {
         this.items.clear();
+        notifyListeners();
     }
 
     public double calculateTotal()
     {
         return items.stream()
-                    .mapToDouble(cartItem -> cartItem.getProduct().getPrice() * cartItem.getQuantity()) // Multiply by quantity
-                    .sum();
+            .mapToDouble(cartItem -> cartItem.getProduct().getPrice() * cartItem.getQuantity())
+            .sum();
+    }
+
+    public void addCartUpdateListener(Runnable listener)
+    {
+        updateListeners.add(listener);
+    }
+
+    private void notifyListeners()
+    {
+        for (Runnable listener : updateListeners)
+        {
+            listener.run();
+        }
     }
 }

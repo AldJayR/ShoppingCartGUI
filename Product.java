@@ -1,8 +1,7 @@
 import java.util.Objects;
 
-public class Product
-{
-    private static int idCounter = 0; 
+public class Product {
+    private static int idCounter = 0;
     private int id;
     private String name;
     private double price;
@@ -14,8 +13,8 @@ public class Product
         this.id = ++idCounter;
         this.name = name;
         this.price = price;
-        this.category = category != null ? category : "";  
-        this.imageURL = imageURL != null ? imageURL : "";
+        this.category = category != null ? category : "";
+        this.imageURL = imageURL != null ?  imageURL : "";
     }
 
     // Constructor without category and imageURL
@@ -39,24 +38,18 @@ public class Product
         return price;
     }
 
-    public String getImageURL()
-    {
-        return imageURL;
-    }
 
-    public String getCategory() 
+    public String getCategory()
     {
         return category;
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
         return "Product [ID: " + id + ", Name: " + name + ", Price: $" + price + "]";
     }
 
-    @Override
-    public boolean equals(Object obj)
+    @Override public boolean equals(Object obj)
     {
         if (this == obj)
         {
@@ -75,9 +68,8 @@ public class Product
         return this.imageURL;
     }
 
-    @Override
-    public int hashCode()
+    @Override public int hashCode()
     {
-        return Objects.hash(getName()); // Or another unique identifier
+        return Objects.hash(getName());
     }
 }

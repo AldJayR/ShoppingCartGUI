@@ -1,19 +1,25 @@
-import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+
 
 public class CheckoutView extends JPanel {
     private ColorScheme colorScheme;
     private JLabel totalPriceLabel;
+    private JPanel cartSummaryPanel;
+    private static final Color CARD_COLOR = new Color(240, 240, 240); // Light gray
+    private static final Color TEXT_COLOR = new Color(0, 0, 0); // Black
 
-    public CheckoutView() {
+    public CheckoutView()
+    {
         colorScheme = new ColorScheme();
 
         setLayout(new BorderLayout());
         setBackground(colorScheme.getBackgroundColor());
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Create title panel
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         titlePanel.setBackground(colorScheme.getBackgroundColor());
 
@@ -21,48 +27,40 @@ public class CheckoutView extends JPanel {
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLabel.setForeground(colorScheme.getTextColor());
         titlePanel.add(titleLabel);
+        add(titlePanel, BorderLayout.NORTH);
 
-        // Create cart summary panel
-        JPanel cartSummaryPanel = new JPanel();
+        cartSummaryPanel = new JPanel();
         cartSummaryPanel.setLayout(new BoxLayout(cartSummaryPanel, BoxLayout.Y_AXIS));
         cartSummaryPanel.setBackground(colorScheme.getBackgroundColor());
 
         JScrollPane scrollPane = new JScrollPane(cartSummaryPanel);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.setBorder(null);
+        add(scrollPane, BorderLayout.CENTER);
 
-        // Populate cart items
-        List<CartItem> cartItems = Cart.getInstance().getItems();
-        for (CartItem item : cartItems) {
-            cartSummaryPanel.add(createCartItemPanel(item));
-            cartSummaryPanel.add(Box.createVerticalStrut(10)); // Add spacing
-        }
-
-        // Total price section
+        // South panel for total price and action buttons
         JPanel totalPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         totalPanel.setBackground(colorScheme.getBackgroundColor());
-        totalPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
 
-        totalPriceLabel = new JLabel("Total: ₹" + calculateTotal(cartItems));
+        totalPriceLabel = new JLabel("Total: Ph₱0.00");
         totalPriceLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         totalPriceLabel.setForeground(colorScheme.getTextColor());
         totalPanel.add(totalPriceLabel);
 
-        // Action buttons
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         actionPanel.setBackground(colorScheme.getBackgroundColor());
 
         JButton confirmButton = new JButton("Confirm Order");
         confirmButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        confirmButton.setForeground(Color.WHITE);
+        confirmButton.setForeground(Color.BLACK);
         confirmButton.setBackground(new Color(0, 122, 255));
         confirmButton.setFocusPainted(false);
         confirmButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        confirmButton.addActionListener(e -> handleConfirmOrder());
+        
 
         JButton backButton = new JButton("Back to Cart");
         backButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        backButton.setForeground(Color.WHITE);
+        backButton.setForeground(Color.BLACK);
         backButton.setBackground(new Color(200, 0, 0));
         backButton.setFocusPainted(false);
         backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -74,42 +72,126 @@ public class CheckoutView extends JPanel {
         actionPanel.add(confirmButton);
         actionPanel.add(backButton);
 
-        // Add all components to the layout
-        add(titlePanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
-        add(totalPanel, BorderLayout.SOUTH);
-        add(actionPanel, BorderLayout.SOUTH);
+        JPanel southPanel = new JPanel(new BorderLayout());
+        southPanel.add(totalPanel, BorderLayout.NORTH);
+        southPanel.add(actionPanel, BorderLayout.SOUTH);
+
+        add(southPanel, BorderLayout.SOUTH);
+
+        // Populate items
+        refreshCartItems();
+
+        // Listen for changes to cart
+        Cart.getInstance().addCartUpdateListener(() -> {
+            refreshCartItems();
+            if (!Cart.getInstance().getItems().isEmpty()) {
+                // Ensure the action listener is only added once
+                for (ActionListener listener : confirmButton.getActionListeners()) {
+                    confirmButton.removeActionListener(listener);
+                }
+                confirmButton.addActionListener(e -> handleConfirmOrder());
+            }
+        });
     }
 
-    private JPanel createCartItemPanel(CartItem item) {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(colorScheme.getBackgroundColor());
-        panel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
+    private void refreshCartItems()
+    {
+        cartSummaryPanel.removeAll();
 
-        JLabel itemName = new JLabel(item.getProduct().getName() + " (x" + item.getQuantity() + ")");
-        itemName.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        itemName.setForeground(colorScheme.getTextColor());
-        panel.add(itemName, BorderLayout.WEST);
+        List<CartItem> cartItems = Cart.getInstance().getItems();
+        if (cartItems == null || cartItems.isEmpty())
+        {
+            JLabel emptyLabel = new JLabel("No items in cart.");
+            emptyLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            emptyLabel.setForeground(colorScheme.getTextColor());
+            cartSummaryPanel.add(emptyLabel);
+        }
+        else
+        {
+            for (CartItem item : cartItems)
+            {
+                cartSummaryPanel.add(createCartItemPanel(item));
+                cartSummaryPanel.add(Box.createVerticalStrut(10));
+            }
+        }
 
-        JLabel itemPrice = new JLabel("₹" + (item.getProduct().getPrice() * item.getQuantity()));
-        itemPrice.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        itemPrice.setForeground(colorScheme.getTextColor());
-        panel.add(itemPrice, BorderLayout.EAST);
+        totalPriceLabel.setText("Total: ₱" + calculateTotal(cartItems));
 
-        return panel;
+        cartSummaryPanel.revalidate();
+        cartSummaryPanel.repaint();
     }
 
-    private double calculateTotal(List<CartItem> cartItems) {
+    private JPanel createCartItemPanel(CartItem item)
+    {
+        Product product = item.getProduct();
+        JPanel card = new JPanel();
+        card.setBackground(CARD_COLOR);
+        card.setLayout(new BorderLayout(10, 10));
+        card.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        card.setPreferredSize(new Dimension(0, 120));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+        card.setMinimumSize(new Dimension(0, 120));
+
+        JPanel imagePanel = new JPanel();
+        imagePanel.setBackground(CARD_COLOR);
+
+        JLabel imageLabel = new JLabel();
+        System.out.println(product.getImage());
+        if (product.getImage() != null)
+        {
+            ImageIcon imageIcon = new ImageIcon(product.getImage());
+            imageLabel.setIcon(imageIcon);
+            imageLabel.setPreferredSize(new Dimension(80, 80));
+        }
+        imagePanel.add(imageLabel);
+
+        card.add(imagePanel, BorderLayout.WEST);
+
+        JPanel infoPanel = new JPanel(new GridLayout(2, 1, 0, 5));
+        infoPanel.setBackground(CARD_COLOR);
+
+        JLabel nameLabel = new JLabel(product.getName() != null ? product.getName() : "Unknown");
+        nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        nameLabel.setForeground(TEXT_COLOR);
+
+        JLabel priceLabel = new JLabel("P" + product.getPrice());
+        priceLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        priceLabel.setForeground(TEXT_COLOR);
+
+        infoPanel.add(nameLabel);
+        infoPanel.add(priceLabel);
+
+        card.add(infoPanel, BorderLayout.CENTER);
+
+        JLabel quantityLabel = new JLabel("Qty: " + item.getQuantity());
+        quantityLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        quantityLabel.setForeground(TEXT_COLOR);
+        card.add(quantityLabel, BorderLayout.EAST);
+
+        return card;
+    }
+
+    private double calculateTotal(List<CartItem> cartItems)
+    {
         return cartItems.stream()
-                        .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
-                        .sum();
+            .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
+            .sum();
     }
 
-    private void handleConfirmOrder() {
-        JOptionPane.showMessageDialog(this, "Order Confirmed!", "Checkout", JOptionPane.INFORMATION_MESSAGE);
-        Cart.getInstance().clear(); // Clear the cart
-        totalPriceLabel.setText("Total: ₹0.00"); // Reset total price
-        // Optionally navigate back to ProductView
+    private void handleConfirmOrder()
+    {
+
+        JOptionPane.showMessageDialog(this, "Order Confirmed!", "Checkout",
+                                      JOptionPane.INFORMATION_MESSAGE);
+        Cart.getInstance().clear();
+        refreshCartItems();
+
+        CartView cartView = (CartView) getParent().getComponent(
+            1);
+        cartView.refreshView();
+        totalPriceLabel.setText("Total: ₱0.00");
+
         CardLayout cl = (CardLayout) this.getParent().getLayout();
         cl.show(this.getParent(), "ProductView");
     }
