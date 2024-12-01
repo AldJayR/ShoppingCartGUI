@@ -27,19 +27,12 @@ public class ProductCard extends JPanel {
     private void initializeComponents() {
         add(createLabel(product.getName(), Font.BOLD, 16));
         add(Box.createVerticalStrut(5));
-        add(createLabel(String.format("$%.2f", product.getPrice()), Font.PLAIN, 14));
-        add(Box.createVerticalStrut(10));
-
-        JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
-        quantitySpinner.setMaximumSize(new Dimension(80, 25));
-        quantitySpinner.setAlignmentX(Component.CENTER_ALIGNMENT);
-        add(quantitySpinner);
+        add(createLabel(String.format("P%.2f", product.getPrice()), Font.PLAIN, 14));
         add(Box.createVerticalStrut(10));
 
         JButton addButton = createStyledButton("Add to Cart");
         addButton.addActionListener(e -> {
-            int quantity = (int) quantitySpinner.getValue();
-            addToCartCallback.accept(product, quantity);
+            addToCartCallback.accept(product, 1);
         });
         add(addButton);
     }

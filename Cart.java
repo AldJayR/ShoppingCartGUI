@@ -50,6 +50,11 @@ public class Cart
         return new ArrayList<>(items); // Return a copy of the list to avoid external modifications
     }
 
+    public void clear()
+    {
+        this.items.clear();
+    }
+
     public double calculateTotal()
     {
         return items.stream()

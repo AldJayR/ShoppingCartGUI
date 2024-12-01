@@ -4,7 +4,10 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import javax.swing.*;
 import java.awt.*;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 import java.text.NumberFormat;
 
 public class CartView extends JPanel
@@ -42,9 +45,11 @@ public class CartView extends JPanel
         productListPanel.setLayout(new BoxLayout(productListPanel, BoxLayout.Y_AXIS));
         productListPanel.setBackground(BACKGROUND_COLOR);
 
+        // Wrap product list in a JScrollPane with fixed height
         JScrollPane scrollPane = new JScrollPane(productListPanel);
         scrollPane.setBorder(null);
         scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+        scrollPane.setPreferredSize(new Dimension(0, 300));  // Fix height of the scroll area
         add(scrollPane, BorderLayout.CENTER);
 
         // Bottom panel with total
@@ -93,47 +98,66 @@ public class CartView extends JPanel
             }
         });
 
+        button.addActionListener(e -> {
+    CardLayout cardLayout = (CardLayout) this.getParent().getLayout();
+    cardLayout.show(this.getParent(), "CheckoutView");
+});
+
         return button;
     }
 
-private JPanel createCategoryPanel(String category, List<CartItem> categoryItems)
-{
-    JPanel categoryPanel = new JPanel();
-    categoryPanel.setLayout(new BoxLayout(categoryPanel, BoxLayout.Y_AXIS));
-    categoryPanel.setBackground(BACKGROUND_COLOR);
-    categoryPanel.setBorder(new EmptyBorder(0, 0, 30, 0));
-
-    // Category header
-    JLabel categoryLabel = new JLabel(category);
-    categoryLabel.setFont(CATEGORY_FONT);
-    categoryLabel.setForeground(TEXT_COLOR);
-    categoryLabel.setBorder(new EmptyBorder(0, 0, 15, 0));
-    categoryPanel.add(categoryLabel);
-
-    // Products grid
-    JPanel productGridPanel = new JPanel(new GridLayout(0, 1, 0, 10));
-    productGridPanel.setBackground(BACKGROUND_COLOR);
-
-    for (CartItem item : categoryItems)
+    private JPanel createCategoryPanel(String category, List<CartItem> categoryItems)
     {
-        if (item != null && item.getProduct() != null)
+        JPanel categoryPanel = new JPanel();
+        categoryPanel.setLayout(new BoxLayout(categoryPanel, BoxLayout.Y_AXIS));
+        categoryPanel.setBackground(BACKGROUND_COLOR);
+        categoryPanel.setBorder(new EmptyBorder(0, 0, 30, 0));
+
+        for (CartItem item : categoryItems)
         {
-            productGridPanel.add(createProductCard(item));
+            if (item != null && item.getProduct() != null)
+            {
+                categoryPanel.add(createProductCard(item));
+                categoryPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+            }
         }
+
+        return categoryPanel;
     }
-    categoryPanel.add(productGridPanel);
 
-    return categoryPanel;
-}
-
- private JPanel createProductCard(CartItem item)
+private JPanel createProductCard(CartItem item)
 {
     Product product = item.getProduct();
     JPanel card = new JPanel();
     card.setBackground(CARD_COLOR);
     card.setLayout(new BorderLayout(10, 10));
-    card.setPreferredSize(new Dimension(400, 120));
 
+    // Add padding inside the card
+    card.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+    // Set card width to full container width and fixed height
+    card.setPreferredSize(new Dimension(0, 120));  // Width is 0, so it will expand to fill the available width
+    card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120)); // Ensure no vertical stretching, max width available
+    card.setMinimumSize(new Dimension(0, 120)); // Ensure minimum height doesn't shrink below the set value
+
+    // Left panel for image
+    JPanel imagePanel = new JPanel();
+    imagePanel.setBackground(CARD_COLOR);
+
+    // Add image (replace "product.getImage()" with your actual image path or resource)
+    JLabel imageLabel = new JLabel();
+    if (product.getImage() != null)
+    {
+        // Assuming product.getImage() returns the path to the image
+        ImageIcon imageIcon = new ImageIcon(product.getImage());  // Create image icon from path
+        imageLabel.setIcon(imageIcon);
+        imageLabel.setPreferredSize(new Dimension(80, 80));  // Fixed size for the image
+    }
+    imagePanel.add(imageLabel);
+
+    card.add(imagePanel, BorderLayout.WEST);  // Add image panel to the left of the card
+
+    // Info panel for product name and price
     JPanel infoPanel = new JPanel(new GridLayout(2, 1, 0, 5));
     infoPanel.setBackground(CARD_COLOR);
 
@@ -141,7 +165,7 @@ private JPanel createCategoryPanel(String category, List<CartItem> categoryItems
     nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
     nameLabel.setForeground(TEXT_COLOR);
 
-    JLabel priceLabel = new JLabel(NumberFormat.getCurrencyInstance().format(product.getPrice()));
+    JLabel priceLabel = new JLabel("P" + product.getPrice());
     priceLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
     priceLabel.setForeground(TEXT_COLOR);
 
@@ -150,14 +174,62 @@ private JPanel createCategoryPanel(String category, List<CartItem> categoryItems
 
     card.add(infoPanel, BorderLayout.CENTER);
 
+    // Customize quantity spinner
     JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(item.getQuantity(), 1, 100, 1));
     quantitySpinner.setPreferredSize(new Dimension(60, 25));
-    quantitySpinner.addChangeListener(e -> {
-        item.setQuantity((int) quantitySpinner.getValue());
-        refreshView();
+
+    // Customizing spinner's editor (make it look like an input field)
+    JComponent editor = (JComponent) quantitySpinner.getEditor();
+JTextField textField = (JTextField) editor.getComponent(0);  // Cast to JTextField
+textField.setBackground(Color.WHITE);  // White background like an input field
+textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));  // Matching font style
+textField.setBorder(BorderFactory.createLineBorder(Color.GRAY));  // Thin border for the input
+
+    // Add custom up/down buttons with icons (you can replace with your own icons)
+    Component upButton = quantitySpinner.getComponent(0); // The up button
+    Component downButton = quantitySpinner.getComponent(1); // The down button
+
+    // Custom button colors and hover effect
+    upButton.setBackground(new Color(0, 122, 255));  // Accent color
+    upButton.setForeground(Color.WHITE);
+    downButton.setBackground(new Color(0, 122, 255));
+    downButton.setForeground(Color.WHITE);
+
+    upButton.addMouseListener(new java.awt.event.MouseAdapter()
+    {
+        public void mouseEntered(java.awt.event.MouseEvent evt)
+        {
+            upButton.setBackground(new Color(0, 150, 255));  // Slightly darker blue on hover
+        }
+
+        public void mouseExited(java.awt.event.MouseEvent evt)
+        {
+            upButton.setBackground(new Color(0, 122, 255));  // Default color
+        }
     });
+
+    downButton.addMouseListener(new java.awt.event.MouseAdapter()
+    {
+        public void mouseEntered(java.awt.event.MouseEvent evt)
+        {
+            downButton.setBackground(new Color(0, 150, 255));  // Slightly darker blue on hover
+        }
+
+        public void mouseExited(java.awt.event.MouseEvent evt)
+        {
+            downButton.setBackground(new Color(0, 122, 255));  // Default color
+        }
+    });
+
+     quantitySpinner.addChangeListener(e -> {
+        int newQuantity = (Integer) quantitySpinner.getValue();
+        item.setQuantity(newQuantity);  // Update the item's quantity
+        updateTotalPrice(Cart.getInstance());  // Update the total price label
+    });
+
     card.add(quantitySpinner, BorderLayout.EAST);
 
+    // Remove button
     JButton removeButton = new JButton("Remove");
     removeButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
     removeButton.setForeground(ACCENT_COLOR);
@@ -167,8 +239,7 @@ private JPanel createCategoryPanel(String category, List<CartItem> categoryItems
     removeButton.setFocusPainted(false);
     removeButton.setPreferredSize(new Dimension(100, 30));
 
-    removeButton.addActionListener(e ->
-    {
+    removeButton.addActionListener(e -> {
         Cart.getInstance().removeProduct(item);
         refreshView();
     });
@@ -178,16 +249,13 @@ private JPanel createCategoryPanel(String category, List<CartItem> categoryItems
     return card;
 }
 
+
     public void refreshView()
     {
-        SwingUtilities.invokeLater(() ->
-        {
-            try
-            {
+        SwingUtilities.invokeLater(() -> {
+            try {
                 updateCartDisplay();
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                     "Error updating cart view: " + e.getMessage(),
@@ -197,54 +265,54 @@ private JPanel createCategoryPanel(String category, List<CartItem> categoryItems
         });
     }
 
- private void updateCartDisplay()
-{
-    productListPanel.removeAll();
-
-    Cart cart = Cart.getInstance();
-    if (cart == null)
+    private void updateCartDisplay()
     {
-        showEmptyCartMessage();
-        return;
-    }
+        productListPanel.removeAll();
 
-    List<CartItem> items = cart.getItems();
-    if (items == null || items.isEmpty())
-    {
-        showEmptyCartMessage();
-        return;
-    }
-
-    Map<String, List<CartItem>> itemsByCategory = new HashMap<>();
-    for (CartItem item : items)
-    {
-        Product product = item.getProduct();
-        if (product != null)
+        Cart cart = Cart.getInstance();
+        if (cart == null)
         {
-            itemsByCategory.computeIfAbsent(
-                product.getCategory(),
-                k -> new ArrayList<>()
-            ).add(item);
+            showEmptyCartMessage();
+            return;
         }
-    }
 
-    for (Map.Entry<String, List<CartItem>> entry : itemsByCategory.entrySet())
-    {
-        String category = entry.getKey();
-        List<CartItem> categoryItems = entry.getValue();
-
-        if (category != null && !categoryItems.isEmpty())
+        List<CartItem> items = cart.getItems();
+        if (items == null || items.isEmpty())
         {
-            JPanel categoryPanel = createCategoryPanel(category, categoryItems);
-            productListPanel.add(categoryPanel);
+            showEmptyCartMessage();
+            return;
         }
+
+        Map<String, List<CartItem>> itemsByCategory = new HashMap<>();
+        for (CartItem item : items)
+        {
+            Product product = item.getProduct();
+            if (product != null)
+            {
+                itemsByCategory.computeIfAbsent(
+                    product.getCategory(),
+                    k -> new ArrayList<>()
+                ).add(item);
+            }
+        }
+
+        for (Map.Entry<String, List<CartItem>> entry : itemsByCategory.entrySet())
+        {
+            String category = entry.getKey();
+            List<CartItem> categoryItems = entry.getValue();
+
+            if (category != null && !categoryItems.isEmpty())
+            {
+                JPanel categoryPanel = createCategoryPanel(category, categoryItems);
+                productListPanel.add(categoryPanel);
+            }
+        }
+
+        updateTotalPrice(cart);
+
+        productListPanel.revalidate();
+        productListPanel.repaint();
     }
-
-    updateTotalPrice(cart);
-
-    productListPanel.revalidate();
-    productListPanel.repaint();
-}
 
     private void showEmptyCartMessage()
     {
@@ -262,7 +330,7 @@ private JPanel createCategoryPanel(String category, List<CartItem> categoryItems
         emptyCartPanel.add(emptyMessage);
         productListPanel.add(emptyCartPanel);
 
-        totalPriceLabel.setText("Total: $0.00");
+        totalPriceLabel.setText("Total: P0.00");
 
         productListPanel.revalidate();
         productListPanel.repaint();
@@ -271,6 +339,6 @@ private JPanel createCategoryPanel(String category, List<CartItem> categoryItems
     private void updateTotalPrice(Cart cart)
     {
         double total = cart.calculateTotal();
-        totalPriceLabel.setText("Total: " + NumberFormat.getCurrencyInstance().format(total));
+        totalPriceLabel.setText("Total: P" + total);
     }
 }

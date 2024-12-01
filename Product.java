@@ -70,6 +70,11 @@ public class Product
         return Objects.equals(this.getName(), other.getName());
     }
 
+    public String getImage()
+    {
+        return this.imageURL;
+    }
+
     @Override
     public int hashCode()
     {

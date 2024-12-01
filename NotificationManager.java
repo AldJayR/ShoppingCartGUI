@@ -15,7 +15,7 @@ public class NotificationManager {
         notification.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 5));
         notification.setBackground(new Color(40, 167, 69));
 
-        JLabel message = new JLabel("✓ " + quantity + " " + productName + " added to cart");
+        JLabel message = new JLabel(quantity + " " + productName + " added to cart");
         message.setForeground(Color.WHITE);
         message.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
