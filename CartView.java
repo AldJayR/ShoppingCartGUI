@@ -20,6 +20,7 @@ public class CartView extends JPanel {
     private static final Font HEADER_FONT = new Font("Segoe UI", Font.BOLD, 32);
     private static final Font CATEGORY_FONT = new Font("Segoe UI", Font.BOLD, 24);
     private static final Font PRICE_FONT = new Font("Segoe UI", Font.BOLD, 18);
+    private JButton checkoutButton;
 
     public CartView()
     {
@@ -54,11 +55,11 @@ public class CartView extends JPanel {
             BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY),
             new EmptyBorder(20, 0, 0, 0)));
 
-        totalPriceLabel = new JLabel("Total: $0.00");
+        totalPriceLabel = new JLabel("Total: P0.00");
         totalPriceLabel.setFont(PRICE_FONT);
         totalPriceLabel.setForeground(TEXT_COLOR);
 
-        JButton checkoutButton = createStyledButton("Proceed to Checkout");
+        checkoutButton = createStyledButton("Proceed to Checkout");
 
         bottomPanel.add(totalPriceLabel, BorderLayout.WEST);
         bottomPanel.add(checkoutButton, BorderLayout.EAST);
@@ -219,7 +220,7 @@ public class CartView extends JPanel {
             Cart.getInstance().updateQuantity(item, newQuantity); 
             updateTotalPrice(Cart.getInstance());
         });
-        card.add(quantitySpinner, BorderLayout.EAST); // Add spinner to the right
+        card.add(quantitySpinner, BorderLayout.EAST);
 
         // Remove button
         JButton removeButton = new JButton("Remove");
@@ -237,7 +238,7 @@ public class CartView extends JPanel {
             refreshView();
         });
 
-        card.add(removeButton, BorderLayout.SOUTH); // Add remove button to the bottom
+        card.add(removeButton, BorderLayout.SOUTH);
 
         return card;
     }
@@ -271,6 +272,7 @@ public class CartView extends JPanel {
             try
             {
                 updateCartDisplay();
+                updateCheckoutButtonState();
             } catch (Exception e)
             {
                 e.printStackTrace();
@@ -279,6 +281,15 @@ public class CartView extends JPanel {
             }
         });
     }
+
+    private void updateCheckoutButtonState() 
+    {
+        Cart cart = Cart.getInstance();
+        boolean enableButton = (cart != null && !cart.getItems().isEmpty());
+        checkoutButton.setEnabled(enableButton);
+        checkoutButton.setBackground(enableButton ? ACCENT_COLOR : Color.GRAY);
+    }
+
 
     private void updateCartDisplay()
     {

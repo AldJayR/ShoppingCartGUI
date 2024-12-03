@@ -200,20 +200,4 @@ public class MainView extends JFrame {
         mainPanel.repaint();
     }
 
-    public static void main(String[] args)
-    {
-        SwingUtilities.invokeLater(() -> {
-            try
-            {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-
-            MainView mainView = new MainView();
-            mainView.setExtendedState(JFrame.MAXIMIZED_BOTH);
-            mainView.setVisible(true); // Make the window visible
-        });
-    }
 }
